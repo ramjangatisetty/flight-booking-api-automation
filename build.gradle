@@ -1,0 +1,98 @@
+plugins {
+    id 'java'
+    id 'io.qameta.allure' version '2.11.2'
+    id 'idea'
+    id 'eclipse'
+}
+
+group = 'com.api.framework'
+version = '1.0'
+sourceCompatibility = '11'
+
+repositories {
+    mavenCentral()
+}
+
+ext {
+    versions = [
+            testng      : '7.9.0',
+            cucumber    : '7.11.2',
+            restAssured : '5.3.1',
+            jackson     : '2.17.0',
+            allure      : '2.27.0',
+            slf4j       : '2.0.9',
+            logback     : '1.4.14',
+            lombok      : '1.18.30'
+    ]
+}
+
+dependencies {
+    //Core Cucumber + TestNG
+    testImplementation "org.testng:testng:${versions.testng}"
+    testImplementation "io.cucumber:cucumber-java:${versions.cucumber}"
+    testImplementation "io.cucumber:cucumber-testng:${versions.cucumber}"
+
+    //API Testing
+    testImplementation "io.rest-assured:rest-assured:${versions.restAssured}"
+    testImplementation "io.rest-assured:json-path:${versions.restAssured}"
+    testImplementation "io.rest-assured:xml-path:${versions.restAssured}"
+    testImplementation "io.rest-assured:json-schema-validator:${versions.restAssured}"
+
+    //JSON Bindings
+    testImplementation "com.fasterxml.jackson.core:jackson-databind:${versions.jackson}"
+
+    //Logging
+    testImplementation "org.slf4j:slf4j-api:${versions.slf4j}"
+    testRuntimeOnly "ch.qos.logback:logback-classic:${versions.logback}"
+
+    //Allure Reports
+
+    testImplementation "io.qameta.allure:allure-cucumber7-jvm:2.17.3"
+
+    //Lombok
+    compileOnly "org.projectlombok:lombok:${versions.lombok}"
+    annotationProcessor "org.projectlombok:lombok:${versions.lombok}"
+    testCompileOnly "org.projectlombok:lombok:${versions.lombok}"
+    testAnnotationProcessor "org.projectlombok:lombok:${versions.lombok}"
+
+    //Fix missing dependency for Apache HttpClient in RestAssured
+    testImplementation 'commons-logging:commons-logging:1.2'
+}
+
+test {
+    useTestNG()
+
+    // ✅ THIS is the correct include for test classes without @Test methods
+    include '**/runner/TestRunner.class'
+
+    systemProperty "cucumber.options", System.getProperty("cucumber.options", "--tags @registerAndLogin")
+    systemProperty "env", System.getProperty("env", "qa")
+
+    testLogging {
+        events "passed", "skipped", "failed"
+        exceptionFormat "full"
+        showStandardStreams = true
+    }
+}
+
+
+
+//Allure Report Generation
+allure {
+    version = versions.allure
+    useTestNG {
+        version = versions.allure
+    }
+}
+
+//Allure CLI Report Generation Task
+task generateAllureReport(type: Exec) {
+    description = 'Generate Allure Report'
+    group = 'Reporting'
+    commandLine 'allure', 'generate', 'build/allure-results', '-o', 'build/allure-report', '--clean'
+}
+
+//Prevent JAR creation
+jar {
+    enabled = false
+}
