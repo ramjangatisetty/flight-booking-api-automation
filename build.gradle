@@ -95,15 +95,30 @@ dependencies {
     }
 }*/
 
-test {
+/*test {
     useTestNG() {
         suites 'src/test/resources/testng.xml'
     }
     systemProperty "env", System.getProperty("env", "qa")
+    systemProperty "cucumber.filter.tags", System.getProperty("cucumber.filter.tags", "@registerAndLogin")
     testLogging {
         events "passed", "skipped", "failed"
         exceptionFormat "full"
         showStandardStreams = true
+    }
+}*/
+
+test {
+    useTestNG {
+        suites "src/test/resources/testng.xml"
+    }
+
+    systemProperty "cucumber.options", System.getProperty("cucumber.options", "--tags @login")
+    systemProperty "env", System.getProperty("env", "qa")
+
+    testLogging {
+        events "passed", "skipped", "failed"
+        exceptionFormat "full"
     }
 }
 
