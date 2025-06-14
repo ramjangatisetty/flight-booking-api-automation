@@ -14,7 +14,7 @@ public class UserClient {
 				.contentType("application/json")
 				.body(request)
 				.when()
-				.post("/api/users/register")
+				.post("Http://localhost:3000/api/v1/users/register")
 				.then()
 				.log().all()
 				.extract().response();
@@ -26,7 +26,7 @@ public class UserClient {
 				.contentType("application/json")
 				.body(request)
 				.when()
-				.post("/api/users/login")
+				.post("http://localhost:3000/api/v1/users/login")
 				.then()
 				.log().all()
 				.extract().response();

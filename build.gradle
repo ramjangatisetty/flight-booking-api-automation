@@ -11,6 +11,8 @@ sourceCompatibility = '11'
 
 repositories {
     mavenCentral()
+    maven { url 'https://jitpack.io' }
+
 }
 
 ext {
@@ -19,11 +21,30 @@ ext {
             cucumber    : '7.11.2',
             restAssured : '5.3.1',
             jackson     : '2.17.0',
-            allure      : '2.27.0',
+            extent      : '5.1.2',
             slf4j       : '2.0.9',
             logback     : '1.4.14',
             lombok      : '1.18.30'
     ]
+}
+
+sourceSets {
+    main {
+        java {
+            srcDirs = ['src/main/java']
+        }
+        resources {
+            srcDirs = ['src/main/resources']
+        }
+    }
+    test {
+        java {
+            srcDirs = ['src/test/java']
+        }
+        resources {
+            srcDirs = ['src/test/resources']
+        }
+    }
 }
 
 dependencies {
@@ -31,6 +52,10 @@ dependencies {
     testImplementation "org.testng:testng:${versions.testng}"
     testImplementation "io.cucumber:cucumber-java:${versions.cucumber}"
     testImplementation "io.cucumber:cucumber-testng:${versions.cucumber}"
+
+    //reports
+    testImplementation "com.aventstack:extentreports:${versions.extent}"
+
 
     //API Testing
     testImplementation "io.rest-assured:rest-assured:${versions.restAssured}"
@@ -44,28 +69,23 @@ dependencies {
     //Logging
     testImplementation "org.slf4j:slf4j-api:${versions.slf4j}"
     testRuntimeOnly "ch.qos.logback:logback-classic:${versions.logback}"
-
-    //Allure Reports
-
-    testImplementation "io.qameta.allure:allure-cucumber7-jvm:2.17.3"
-
     //Lombok
     compileOnly "org.projectlombok:lombok:${versions.lombok}"
     annotationProcessor "org.projectlombok:lombok:${versions.lombok}"
     testCompileOnly "org.projectlombok:lombok:${versions.lombok}"
     testAnnotationProcessor "org.projectlombok:lombok:${versions.lombok}"
 
-    //Fix missing dependency for Apache HttpClient in RestAssured
-    testImplementation 'commons-logging:commons-logging:1.2'
+
+
+
+    // Required to ensure file operations work correctly
+    testImplementation "org.apache.commons:commons-lang3:3.12.0"
 }
 
-test {
+/*test {
     useTestNG()
-
-    // ✅ THIS is the correct include for test classes without @Test methods
-    include '**/runner/TestRunner.class'
-
-    systemProperty "cucumber.options", System.getProperty("cucumber.options", "--tags @registerAndLogin")
+    // ✅ Use modern system property
+    systemProperty "cucumber.filter.tags", System.getProperty("cucumber.filter.tags", "@registerAndLogin")
     systemProperty "env", System.getProperty("env", "qa")
 
     testLogging {
@@ -73,23 +93,18 @@ test {
         exceptionFormat "full"
         showStandardStreams = true
     }
-}
+}*/
 
-
-
-//Allure Report Generation
-allure {
-    version = versions.allure
-    useTestNG {
-        version = versions.allure
+test {
+    useTestNG() {
+        suites 'src/test/resources/testng.xml'
     }
-}
-
-//Allure CLI Report Generation Task
-task generateAllureReport(type: Exec) {
-    description = 'Generate Allure Report'
-    group = 'Reporting'
-    commandLine 'allure', 'generate', 'build/allure-results', '-o', 'build/allure-report', '--clean'
+    systemProperty "env", System.getProperty("env", "qa")
+    testLogging {
+        events "passed", "skipped", "failed"
+        exceptionFormat "full"
+        showStandardStreams = true
+    }
 }
 
 //Prevent JAR creation
